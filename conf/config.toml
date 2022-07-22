@@ -1,7 +1,11 @@
-[indie-mix]
+[daily]
+
+[daily.indie-mix]
 all_time_playlist = "2sadM6M9K9UqJvf2SFHHlu"
 original_playlist = "37i9dQZF1EQqkOPvHGajmW"
 
-[daily-mix]
+[weekly]
+
+[weekly.daily-mix]
 all_time_playlist = "0lpfYyjSqOMsfZ8XxO0aa3"
 original_playlist = "37i9dQZEVXcCwQg18md4qN"
