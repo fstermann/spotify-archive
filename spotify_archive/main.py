@@ -8,12 +8,7 @@ from dotenv import dotenv_values
 from spotipy.oauth2 import SpotifyOAuth
 
 from spotify_archive.config import config
-
-logger = logging.getLogger("discovered-weekly")
-handler = logging.StreamHandler(stream=sys.stdout)
-handler.setFormatter(logging.Formatter(fmt="%(asctime)s : %(levelname)s : %(message)s"))
-logger.addHandler(handler)
-logger.setLevel(logging.INFO)
+from spotify_archive.logger import logger
 
 
 def main(schedule: str):
