@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Tuple
 
-import spotipy
+from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
 
 from spotify_archive.config import config
@@ -43,7 +43,7 @@ def load_client(
     redirect_uri: str,
     username: str,
     refresh_token: str,
-) -> spotipy.Spotify:
+) -> Spotify:
     scopes = ["playlist-read-private", "playlist-modify-private"]
     # Authenticate
     auth_manager = SpotifyOAuth(
@@ -54,11 +54,11 @@ def load_client(
         username=username,
     )
     auth_manager.refresh_access_token(refresh_token)
-    client = spotipy.Spotify(auth_manager=auth_manager)
+    client = Spotify(auth_manager=auth_manager)
     return client
 
 
-def parse_playlist(client: spotipy.Spotify, playlist_id: str) -> Tuple[str, List[str]]:
+def parse_playlist(client: Spotify, playlist_id: str) -> Tuple[str, List[str]]:
     playlist_items = client.playlist_items(playlist_id)
     playlist_created = datetime.strptime(
         playlist_items["items"][0]["added_at"], "%Y-%m-%dT%H:%M:%S%z"
@@ -70,7 +70,7 @@ def parse_playlist(client: spotipy.Spotify, playlist_id: str) -> Tuple[str, List
 
 
 def add_to_all_time_playlist(
-    client: spotipy.Spotify, track_uris: List[str], all_time_playlist_id: str
+    client: Spotify, track_uris: List[str], all_time_playlist_id: str
 ) -> bool:
     all_tracks = client.playlist_items(all_time_playlist_id)
 
