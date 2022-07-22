@@ -1,0 +1,33 @@
+name: discovered-mixtapes
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run every Tuesday at 0 UTC
+    - cron: "0 0 * * 2"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .
+      - name: Run discovered mixtapes
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          REDIRECT_URI: ${{ secrets.REDIRECT_URI }}
+          REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+          USERNAME: ${{ secrets.USERNAME }}
+          DISCOVER_WEEKLY_PLAYLIST_ID: ${{ secrets.DISCOVER_WEEKLY_PLAYLIST_ID }}
+          ALL_DISCOVERED_PLAYLIST_ID: ${{ secrets.ALL_DISCOVERED_PLAYLIST_ID }}
+        run: |
+          python discovered_mixtapes/main.py
