@@ -18,6 +18,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install .
           python -m pip install -r requirements-dev.txt
+          python -m mypy --install-types
       - name: Run flake8
         if: always() && steps.install.outcome == 'success'
         run: flake8 spotify_archive
