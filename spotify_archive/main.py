@@ -6,8 +6,8 @@ import sys
 import spotipy
 from dotenv import dotenv_values
 from spotipy.oauth2 import SpotifyOAuth
-from discovered_mixtapes.config import config
 
+from spotify_archive.config import config
 
 logger = logging.getLogger("discovered-weekly")
 handler = logging.StreamHandler(stream=sys.stdout)
@@ -16,7 +16,7 @@ logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 
-def main():
+def main(schedule: str):
     # Override sample with non-sample file-based env variables,
     # and override both with actual env variables
     spotify_config = {
@@ -33,7 +33,9 @@ def main():
         spotify_config["REFRESH_TOKEN"],
     )
 
-    for name, playlist in config.playlists.items():
+    logger.info(f"Archiving {schedule} playlists")
+    playlists = getattr(config, schedule)
+    for name, playlist in playlists.items():
         playlist_date, dw_uris = parse_this_week(client, playlist.original_playlist)
         logger.info(f"Found this {name} for {playlist_date}")
         logger.info("Adding to all time playlist")
@@ -43,6 +45,14 @@ def main():
         # add_to_weekly_archive(client, config["USERNAME"], playlist_date, dw_uris)
 
     logger.info("Done archiving")
+
+
+def main_daily():
+    main("daily")
+
+
+def main_weekly():
+    main("weekly")
 
 
 def load_client(client_id, client_secret, redirect_uri, username, refresh_token):
