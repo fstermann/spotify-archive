@@ -1,0 +1,32 @@
+name: Linters
+
+on: [push]
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        id: install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .
+          python -m pip install -r requirements-dev.txt
+      - name: Run flake8
+        if: always() && steps.install.outcome == 'success'
+        run: flake8 spotify_archive
+      - name: Run mypy
+        if: always() && steps.install.outcome == 'success'
+        run: mypy spotify_archive
+      - name: Run black
+        if: always() && steps.install.outcome == 'success'
+        run: black --check spotify_archive
+      - name: Run isort
+        if: always() && steps.install.outcome == 'success'
+        run: isort --check-only spotify_archive

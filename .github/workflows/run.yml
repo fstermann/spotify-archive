@@ -12,7 +12,6 @@ jobs:
   daily:
     if: contains(github.event.schedule, '0 5 * * *')
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.9
@@ -35,7 +34,6 @@ jobs:
   weekly:
     if: contains(github.event.schedule, '0 5 * * 2')
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.9
