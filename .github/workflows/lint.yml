@@ -23,7 +23,7 @@ jobs:
         run: flake8 spotify_archive
       - name: Run mypy
         if: always() && steps.install.outcome == 'success'
-        run: mypy spotify_archive
+        run: mypy --install-types --non-interactive spotify_archive
       - name: Run black
         if: always() && steps.install.outcome == 'success'
         run: black --check spotify_archive
