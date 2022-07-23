@@ -39,7 +39,7 @@ class Config:
     spotify: SpotifyConfig
 
 
-with open("conf/config.toml", "r") as f:
+with open("conf/config.yaml", "r") as f:
     config_raw = yaml.safe_load(f)
 
 config = Config(
