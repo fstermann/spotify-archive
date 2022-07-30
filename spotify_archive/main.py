@@ -1,5 +1,4 @@
-from datetime import datetime
-from typing import List, Tuple
+from typing import Dict, List
 
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
@@ -21,8 +20,8 @@ def main(schedule: str):
     logger.info(f"Archiving {schedule} playlists")
     playlists = getattr(config, schedule)
     for name, playlist in playlists.items():
-        playlist_date, track_uris = parse_playlist(client, playlist.original_playlist)
-        logger.info(f"Found {name} for {playlist_date}")
+        track_uris = parse_playlist(client, playlist.original_playlist)
+        logger.info(f"Found {name} with {len(track_uris)} tracks")
         logger.info("Adding to all time playlist")
         add_to_all_time_playlist(client, track_uris, playlist.all_time_playlist)
 
@@ -58,23 +57,28 @@ def load_client(
     return client
 
 
-def parse_playlist(client: Spotify, playlist_id: str) -> Tuple[str, List[str]]:
-    playlist_items = client.playlist_items(playlist_id)
-    playlist_created = datetime.strptime(
-        playlist_items["items"][0]["added_at"], "%Y-%m-%dT%H:%M:%S%z"
-    )
-    playlist_date = playlist_created.strftime("%Y-%m-%d")
+def get_all_playlist_items(client: Spotify, playlist_id: str) -> List[Dict]:
+    results = client.playlist_items(playlist_id)
+    items = results["items"]
+    while results["next"]:
+        results = client.next(results)
+        items.extend(results["items"])
+    return items
 
-    track_uris = [item["track"]["uri"] for item in playlist_items["items"]]
-    return playlist_date, track_uris
+
+def parse_playlist(client: Spotify, playlist_id: str) -> List[str]:
+    playlist_items = get_all_playlist_items(client, playlist_id)
+    track_uris = [item["track"]["uri"] for item in playlist_items]
+    return track_uris
 
 
 def add_to_all_time_playlist(
     client: Spotify, track_uris: List[str], all_time_playlist_id: str
 ) -> bool:
-    all_tracks = client.playlist_items(all_time_playlist_id)
+    all_tracks = get_all_playlist_items(client, all_time_playlist_id)
+    logger.info(f"Found all time playlist with {len(all_tracks)} tracks")
 
-    all_time_uris = [t["track"]["uri"] for t in all_tracks["items"]]
+    all_time_uris = [t["track"]["uri"] for t in all_tracks]
     uris_to_be_added = [uri for uri in track_uris if uri not in all_time_uris]
 
     if not uris_to_be_added:
