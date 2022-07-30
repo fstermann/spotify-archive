@@ -9,7 +9,7 @@ on:
     - cron: "0 5 * * *"
 
 jobs:
-  daily:
+  archive:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
