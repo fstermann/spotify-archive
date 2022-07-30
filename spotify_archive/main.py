@@ -1,3 +1,4 @@
+import argparse
 from typing import Dict, List
 
 from spotipy import Spotify
@@ -6,8 +7,11 @@ from spotipy.oauth2 import SpotifyOAuth
 from spotify_archive.config import config
 from spotify_archive.logger import logger
 
+SCHEDULES = ["daily", "weekly"]
 
-def main(schedule: str):
+
+def main():
+    schedule = parse_schedule()
     logger.info("Loading client")
     client = load_client(
         client_id=config.spotify.client_id,
@@ -88,3 +92,17 @@ def add_to_all_time_playlist(
     client.playlist_add_items(all_time_playlist_id, uris_to_be_added)
     logger.info(f"Archived {len(uris_to_be_added)} tracks.")
     return True
+
+
+def parse_schedule() -> str:
+    parser = argparse.ArgumentParser(description="Archive Playlist tracks")
+    parser.add_argument("schedule", type=str, nargs="?", help="the schedule to be run")
+    args = parser.parse_args()
+
+    if args.schedule not in SCHEDULES:
+        raise ValueError(f"Unknown schedule {args.schedule}")
+    return args.schedule
+
+
+if __name__ == "__main__":
+    main()
