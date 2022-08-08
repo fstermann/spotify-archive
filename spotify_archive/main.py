@@ -108,7 +108,8 @@ def update_playlist_description(client: Spotify, n_tracks: int, playlist_id: str
     current_date = datetime.today().strftime("%d.%m.%Y")
     description = (
         "This playlist is continously updated by spotify-archive. \n"
-        f"Recently added: {n_tracks} track{'' if n_tracks == 1 else 's'} ({current_date})"
+        "Recently added: "
+        f"{n_tracks} track{'' if n_tracks == 1 else 's'} ({current_date})"
     )
     client.playlist_change_details(playlist_id=playlist_id, description=description)
 
