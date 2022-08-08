@@ -29,10 +29,14 @@ def main():
         logger.info(f"Found {name} with {len(track_uris)} tracks")
         logger.info("Adding to all time playlist")
         add_to_all_time_playlist(
-            client, track_uris=track_uris, playlist_id=playlist.all_time_playlist
+            client,
+            track_uris=track_uris,
+            all_time_playlist_id=playlist.all_time_playlist,
         )
         update_playlist_description(
-            client, n_tracks=len(track_uris), playlist_id=playlist.all_time_playlist
+            client,
+            n_tracks=len(track_uris),
+            playlist_id=playlist.all_time_playlist,
         )
 
     logger.info("Done archiving")
