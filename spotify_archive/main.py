@@ -1,4 +1,5 @@
 import argparse
+from datetime import datetime
 from typing import Dict, List
 
 from spotipy import Spotify
@@ -27,7 +28,12 @@ def main():
         track_uris = parse_playlist(client, playlist.original_playlist)
         logger.info(f"Found {name} with {len(track_uris)} tracks")
         logger.info("Adding to all time playlist")
-        add_to_all_time_playlist(client, track_uris, playlist.all_time_playlist)
+        add_to_all_time_playlist(
+            client, track_uris=track_uris, playlist_id=playlist.all_time_playlist
+        )
+        update_playlist_description(
+            client, n_tracks=len(track_uris), playlist_id=playlist.all_time_playlist
+        )
 
     logger.info("Done archiving")
 
@@ -92,6 +98,15 @@ def add_to_all_time_playlist(
     client.playlist_add_items(all_time_playlist_id, uris_to_be_added)
     logger.info(f"Archived {len(uris_to_be_added)} tracks.")
     return True
+
+
+def update_playlist_description(client: Spotify, n_tracks: int, playlist_id: str):
+    current_date = datetime.today().strftime("%d.%m.%Y")
+    description = (
+        "This playlist is continously updated by spotify-archive. \n"
+        f"Recently added: {n_tracks} track{'' if n_tracks == 1 else 's'} ({current_date})"
+    )
+    client.playlist_change_details(playlist_id=playlist_id, description=description)
 
 
 def parse_schedule() -> str:
