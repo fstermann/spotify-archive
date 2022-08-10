@@ -28,14 +28,14 @@ def main():
         track_uris = parse_playlist(client, playlist.original_playlist)
         logger.info(f"Found {name} with {len(track_uris)} tracks")
         logger.info("Adding to all time playlist")
-        add_to_all_time_playlist(
+        added_tracks = add_to_all_time_playlist(
             client,
             track_uris=track_uris,
             all_time_playlist_id=playlist.all_time_playlist,
         )
         update_playlist_description(
             client,
-            n_tracks=len(track_uris),
+            n_tracks=len(added_tracks),
             playlist_id=playlist.all_time_playlist,
         )
 
@@ -88,7 +88,7 @@ def parse_playlist(client: Spotify, playlist_id: str) -> List[str]:
 
 def add_to_all_time_playlist(
     client: Spotify, track_uris: List[str], all_time_playlist_id: str
-) -> bool:
+) -> List[str]:
     all_tracks = get_all_playlist_items(client, all_time_playlist_id)
     logger.info(f"Found all time playlist with {len(all_tracks)} tracks")
 
@@ -97,20 +97,21 @@ def add_to_all_time_playlist(
 
     if not uris_to_be_added:
         logger.info("All tracks are already included.")
-        return False
+        return []
 
     client.playlist_add_items(all_time_playlist_id, uris_to_be_added)
     logger.info(f"Archived {len(uris_to_be_added)} tracks.")
-    return True
+    return uris_to_be_added
 
 
 def update_playlist_description(client: Spotify, n_tracks: int, playlist_id: str):
     current_date = datetime.today().strftime("%d.%m.%Y")
     description = (
-        "This playlist is continously updated by spotify-archive. \n"
+        "This playlist is continously updated by spotify-archive. "
         "Recently added: "
         f"{n_tracks} track{'' if n_tracks == 1 else 's'} ({current_date})"
     )
+    logger.info(f"Changing playlist description to:\n{description}")
     client.playlist_change_details(playlist_id=playlist_id, description=description)
 
 
