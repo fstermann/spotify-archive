@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import inspect
 import os
 from dataclasses import dataclass
-from typing import Dict
 
 import yaml
 from dotenv import dotenv_values
@@ -28,18 +29,18 @@ class SpotifyConfig:
                 k.lower(): v
                 for k, v in env.items()
                 if k.lower() in inspect.signature(cls).parameters
-            }
+            },
         )
 
 
 @dataclass
 class Config:
-    daily: Dict[str, PlaylistConfig]
-    weekly: Dict[str, PlaylistConfig]
+    daily: dict[str, PlaylistConfig]
+    weekly: dict[str, PlaylistConfig]
     spotify: SpotifyConfig
 
 
-with open("conf/config.yaml", "r") as f:
+with open("conf/config.yaml") as f:
     config_raw = yaml.safe_load(f)
 
 config = Config(

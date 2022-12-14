@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import argparse
 from datetime import datetime
-from typing import Dict, List
 
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
@@ -71,7 +72,7 @@ def load_client(
     return client
 
 
-def get_all_playlist_items(client: Spotify, playlist_id: str) -> List[Dict]:
+def get_all_playlist_items(client: Spotify, playlist_id: str) -> list[dict]:
     results = client.playlist_items(playlist_id)
     items = results["items"]
     while results["next"]:
@@ -80,15 +81,17 @@ def get_all_playlist_items(client: Spotify, playlist_id: str) -> List[Dict]:
     return items
 
 
-def parse_playlist(client: Spotify, playlist_id: str) -> List[str]:
+def parse_playlist(client: Spotify, playlist_id: str) -> list[str]:
     playlist_items = get_all_playlist_items(client, playlist_id)
     track_uris = [item["track"]["uri"] for item in playlist_items]
     return track_uris
 
 
 def add_to_all_time_playlist(
-    client: Spotify, track_uris: List[str], all_time_playlist_id: str
-) -> List[str]:
+    client: Spotify,
+    track_uris: list[str],
+    all_time_playlist_id: str,
+) -> list[str]:
     all_tracks = get_all_playlist_items(client, all_time_playlist_id)
     logger.info(f"Found all time playlist with {len(all_tracks)} tracks")
 
