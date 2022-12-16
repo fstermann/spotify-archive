@@ -148,6 +148,54 @@ def update_playlist_description(client: Spotify, n_tracks: int, playlist_id: str
     client.playlist_change_details(playlist_id=playlist_id, description=description)
 
 
+def get_tracks_info(tracks: list) -> list[TrackInfo]:
+    """Get track info from a list of tracks.
+
+    Args:
+        tracks (list): List of tracks.
+
+    Returns:
+        list[TrackInfo]: List of track info.
+    """
+    return [
+        TrackInfo(
+            external_id=t["track"].get("external_ids", {}).get("isrc"),
+            uri=t["track"]["id"],
+            position=pos,
+            added_at=t["added_at"],
+        )
+        for pos, t in enumerate(tracks)
+    ]
+
+
+def filter_out_duplicates(tracks: list, new_tracks: list) -> list:
+    """Filter out duplicate tracks.
+
+    Args:
+        tracks (list): List of tracks.
+        new_tracks (list): List of new tracks.
+
+    Returns:
+        list: List of new tracks without tracks which are already in the list of tracks
+    """
+    tracks_info = get_tracks_info(tracks)
+
+    # Remove duplicates by external id
+    tracks_external_ids = {t.external_id for t in tracks_info}
+
+    # Remove duplicates by uri, just to be sure
+    tracks_uris = {t.uri for t in tracks_info}
+
+    return [
+        t
+        for t in new_tracks
+        if (
+            t["track"].get("external_ids", {}).get("isrc") not in tracks_external_ids
+            and t["track"]["id"] not in tracks_uris
+        )
+    ]
+
+
 def find_duplicates_by_external_id(tracks: list) -> list[dict[str, str | list[int]]]:
     """Find duplicate tracks by external id.
 
@@ -160,15 +208,7 @@ def find_duplicates_by_external_id(tracks: list) -> list[dict[str, str | list[in
     Returns:
         list[str]: List of track uris to be removed, with their positions.
     """
-    tracks_info = [
-        TrackInfo(
-            external_id=t["track"].get("external_ids", {}).get("isrc"),
-            uri=t["track"]["id"],
-            position=pos,
-            added_at=t["added_at"],
-        )
-        for pos, t in enumerate(tracks)
-    ]
+    tracks_info = get_tracks_info(tracks)
 
     seen: dict[str, list[TrackInfo]] = defaultdict(list)
     for t in tracks_info:

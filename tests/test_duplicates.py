@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from spotify_archive.utils import filter_out_duplicates
 from spotify_archive.utils import find_duplicates_by_external_id
 
 
@@ -97,3 +98,70 @@ class TestDuplicates:
     def test_find_duplicates_by_external_id(self, tracks, expected):
         duplicates = find_duplicates_by_external_id(tracks)
         assert duplicates == expected
+
+    @pytest.mark.parametrize(
+        "tracks,tracks_new,expected",
+        [
+            # No duplicates
+            (
+                [
+                    track("ABC123", "track1", "2022-01-01T00:00:00Z"),
+                    track("DEF456", "track2", "2022-01-02T00:00:00Z"),
+                ],
+                [
+                    track("GHI789", "track3", "2022-01-03T00:00:00Z"),
+                    track("JKL012", "track4", "2022-01-04T00:00:00Z"),
+                ],
+                [
+                    track("GHI789", "track3", "2022-01-03T00:00:00Z"),
+                    track("JKL012", "track4", "2022-01-04T00:00:00Z"),
+                ],
+            ),
+            # One duplicate
+            (
+                [
+                    track("ABC123", "track1", "2022-01-01T00:00:00Z"),
+                    track("DEF456", "track2", "2022-01-03T00:00:00Z"),
+                ],
+                [
+                    track("DEF456", "track3", "2022-01-03T00:00:00Z"),
+                    track("GHI789", "track4", "2022-01-03T00:00:00Z"),
+                ],
+                [
+                    track("GHI789", "track4", "2022-01-03T00:00:00Z"),
+                ],
+            ),
+            # Multiple duplicates
+            (
+                [
+                    track("ABC123", "track1", "2022-01-01T00:00:00Z"),
+                    track("DEF456", "track2", "2022-01-04T00:00:00Z"),
+                    track("GHI789", "track3", "2022-01-05T00:00:00Z"),
+                ],
+                [
+                    track("ABC123", "track1", "2022-01-01T00:00:00Z"),
+                    track("ABC123", "track2", "2022-01-01T00:00:00Z"),
+                    track("DEF456", "track4", "2022-01-04T00:00:00Z"),
+                    track("GHI789", "track3", "2022-01-05T00:00:00Z"),
+                    track("JKL012", "track5", "2022-01-06T00:00:00Z"),
+                ],
+                [
+                    track("JKL012", "track5", "2022-01-06T00:00:00Z"),
+                ],
+            ),
+        ],
+    )
+    def test_filter_out_duplicates(self, tracks, tracks_new, expected):
+        filtered = filter_out_duplicates(tracks, tracks_new)
+        assert filtered == expected
+
+    def test_filter_out_duplicates_empty(self):
+        filtered = filter_out_duplicates([], [])
+        assert filtered == []
+
+    def test_filter_out_duplicates_same_uri(self):
+        filtered = filter_out_duplicates(
+            [track("ABC123", "track1", "2022-01-01T00:00:00Z")],
+            [track("DEF123", "track1", "2022-01-01T00:00:00Z")],
+        )
+        assert filtered == []
