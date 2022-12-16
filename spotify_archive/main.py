@@ -4,6 +4,7 @@ import argparse
 
 from spotify_archive.config import config
 from spotify_archive.logger import logger
+from spotify_archive.utils import add_recommendations_to_all_time_playlist
 from spotify_archive.utils import add_to_all_time_playlist
 from spotify_archive.utils import deduplicate_playlist
 from spotify_archive.utils import get_all_playlist_items
@@ -31,9 +32,17 @@ def archive():
             all_time_playlist_id=playlist.all_time_playlist,
         )
 
+        if playlist.n_recommendations > 0:
+            logger.info("Adding recommendations")
+            added_recommendations = add_recommendations_to_all_time_playlist(
+                client,
+                all_time_playlist_id=playlist.all_time_playlist,
+                limit=5,
+            )
+
         update_playlist_description(
             client,
-            n_tracks=len(added_tracks),
+            n_tracks=len(added_tracks) + len(added_recommendations),
             playlist_id=playlist.all_time_playlist,
         )
 
