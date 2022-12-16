@@ -36,6 +36,18 @@ def load_client(
     username: str,
     refresh_token: str,
 ) -> Spotify:
+    """Load a Spotify client from config
+
+    Args:
+        client_id (str): The client id
+        client_secret (str): The client secret
+        redirect_uri (str): The redirect uri
+        username (str): The username
+        refresh_token (str): The refresh token
+
+    Returns:
+        Spotify: The Spotify client
+    """
     scopes = ["playlist-read-private", "playlist-modify-private"]
     # Authenticate
     auth_manager = SpotifyOAuth(
@@ -51,6 +63,15 @@ def load_client(
 
 
 def get_all_playlist_items(client: Spotify, playlist_id: str) -> list[dict]:
+    """Get all items (tracks) from a playlist.
+
+    Args:
+        client (Spotify): The Spotify client
+        playlist_id (str): The playlist id
+
+    Returns:
+        list[dict]: A list of all items (tracks) in the playlist
+    """
     results = client.playlist_items(playlist_id)
     items = results["items"]
     while results["next"]:
@@ -60,6 +81,17 @@ def get_all_playlist_items(client: Spotify, playlist_id: str) -> list[dict]:
 
 
 def parse_playlist(client: Spotify, playlist_id: str) -> list[str]:
+    """Parse a playlist and return a list of track uris.
+
+    This return the raw track uris, not the ids with the spotify:track: prefix.
+
+    Args:
+        client (Spotify): The Spotify client
+        playlist_id (str): The playlist id
+
+    Returns:
+        list[str]: A list of track uris
+    """
     playlist_items = get_all_playlist_items(client, playlist_id)
     track_uris = [item["track"]["id"] for item in playlist_items]
     return track_uris
@@ -70,6 +102,18 @@ def add_to_all_time_playlist(
     track_uris: list[str],
     all_time_playlist_id: str,
 ) -> list[str]:
+    """Add tracks to a given all time playlist.
+
+    This function will only add tracks that are not already in the playlist.
+
+    Args:
+        client (Spotify): The Spotify client
+        track_uris (list[str]): A list of track uris
+        all_time_playlist_id (str): The all time playlist id
+
+    Returns:
+        list[str]: A list of track uris that were added to the playlist
+    """
     all_tracks = get_all_playlist_items(client, all_time_playlist_id)
     logger.info(f"Found all time playlist with {len(all_tracks)} tracks")
 
@@ -86,11 +130,19 @@ def add_to_all_time_playlist(
 
 
 def update_playlist_description(client: Spotify, n_tracks: int, playlist_id: str):
+    """Update the playlist description after adding tracks.
+
+    Args:
+        client (Spotify): The Spotify client
+        n_tracks (int): The number of tracks that were added
+        playlist_id (str): The id of the playlist to update
+    """
     current_date = datetime.today().strftime("%d.%m.%Y")
     description = (
         "This playlist is continously updated by spotify-archive. "
         "Recently added: "
-        f"{n_tracks} track{'' if n_tracks == 1 else 's'} ({current_date})"
+        f"{n_tracks} track{'' if n_tracks == 1 else 's'} ({current_date}). "
+        "For more info visit github.com/fstermann/spotify-archive"
     )
     logger.info(f"Changing playlist description to:\n{description}")
     client.playlist_change_details(playlist_id=playlist_id, description=description)
@@ -134,11 +186,30 @@ def find_duplicates_by_external_id(tracks: list) -> list[dict[str, str | list[in
 
 
 def make_chunks(list_: list, n: int) -> Generator[list, None, None]:
+    """Yield successive n-sized chunks from a list.
+
+    Args:
+        list_ (list): The list to split
+        n (int): The chunk size
+
+    Yields:
+        Generator[list, None, None]: A generator of lists
+    """
     for i in range(0, len(list_), n):
         yield list_[i : i + n]
 
 
 def deduplicate_playlist(playlist_id: str, client: Spotify):
+    """Remove duplicates from a playlist.
+
+    This function will remove all duplicates from a playlist, based on the
+    external id (ISRC). The external id links back to the original track, for
+    example if a track was realeased on multiple albums.
+
+    Args:
+        playlist_id (str): The id of the playlist to deduplicate
+        client (Spotify): The Spotify client
+    """
     tracks = get_all_playlist_items(client, playlist_id)
     dups = find_duplicates_by_external_id(tracks)
 
