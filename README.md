@@ -20,11 +20,17 @@ This project uses github actions to archive any playlist you want. It will archi
 a specified 'all-time' playlist. Basically, it will copy all the tracks from the daily/weekly playlist to the 'all-time'
 and keep your tracks there, so you can come back and listen to them whenever you want.
 
+### Features
+
 In addition to that, it will also check for duplicates, and makes sure that the 'all-time' playlist only contains
 unique tracks.
 
 
-### Run
+You can also specify an amount of recommendations you want to add to the 'all-time' playlist. These will be generated
+based on the recently added tracks of the 'all-time' playlist.
+
+
+## Run
 
 Manually run the weekly archive
 
@@ -40,6 +46,6 @@ $ spotify-archive daily
 
 It is recommended though to set up github actions to run the archive.
 
-### Configuration
+## Configuration
 
 Add playlists to the `config.yaml` file to include more playlists.
