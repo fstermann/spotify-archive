@@ -61,7 +61,7 @@ def get_all_playlist_items(client: Spotify, playlist_id: str) -> list[dict]:
 
 def parse_playlist(client: Spotify, playlist_id: str) -> list[str]:
     playlist_items = get_all_playlist_items(client, playlist_id)
-    track_uris = [item["track"]["uri"] for item in playlist_items]
+    track_uris = [item["track"]["id"] for item in playlist_items]
     return track_uris
 
 
@@ -73,7 +73,7 @@ def add_to_all_time_playlist(
     all_tracks = get_all_playlist_items(client, all_time_playlist_id)
     logger.info(f"Found all time playlist with {len(all_tracks)} tracks")
 
-    all_time_uris = [t["track"]["uri"] for t in all_tracks]
+    all_time_uris = [t["track"]["id"] for t in all_tracks]
     uris_to_be_added = [uri for uri in track_uris if uri not in all_time_uris]
 
     if not uris_to_be_added:
