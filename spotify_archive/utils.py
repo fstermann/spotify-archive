@@ -97,6 +97,84 @@ def parse_playlist(client: Spotify, playlist_id: str) -> list[str]:
     return track_uris
 
 
+def get_recommendations(
+    client: Spotify,
+    seed_tracks: list[str],
+    limit: int = 20,
+) -> list[dict]:
+    """Get recommendations from Spotify.
+
+    Args:
+        client (Spotify): The Spotify client
+        seed_tracks (list[str]): A list of seed tracks
+        limit (int): The number of recommendations to return
+
+    Returns:
+        list[dict]: A list of recommendation tracks
+
+    Raises:
+        ValueError: If limit is greater than 100
+    """
+    if limit > 100:
+        raise ValueError("limit must be less than or equal to 100")
+
+    recommendations = client.recommendations(seed_tracks=seed_tracks, limit=limit)
+    return recommendations["tracks"]
+
+
+def add_recommendations_to_all_time_playlist(
+    client: Spotify,
+    all_time_playlist_id: str,
+    limit: int = 5,
+    max_tries: int = 5,
+) -> list[str]:
+    """Add recommendations to the all time playlist.
+
+    Args:
+        client (Spotify): The Spotify clientc
+        all_time_playlist_id (str): The all time playlist id
+        limit (int): The number of recommendations to return
+        max_tries (int): The number of times to try to get recommendations
+
+    Returns:
+        list[str]: A list of track uris that were added to the playlist
+    """
+    all_tracks = get_all_playlist_items(client, all_time_playlist_id)
+    all_uris = [t["track"]["id"] for t in all_tracks]
+    all_uris.reverse()
+
+    all_candidates = set()
+    tries = 0
+    for seed_uris in make_chunks(all_uris, 5):
+        tries += 1
+        logger.info(f"Trying to get recommendations {tries}/{max_tries}...")
+
+        recommendations = get_recommendations(client, seed_uris, 100)
+        logger.info(f"Got {len(recommendations)} recommendations.")
+
+        candidates = filter_out_duplicates(
+            tracks=all_tracks,
+            new_tracks=recommendations,
+        )
+        logger.info(f"After filtering: {len(candidates)} candidates.")
+
+        all_candidates.update({c["id"] for c in candidates})
+
+        if len(all_candidates) >= limit or tries >= max_tries:
+            break
+
+    if not all_candidates:
+        logger.info("Could not find any new tracks.")
+        return []
+
+    logger.info(f"Found {len(all_candidates)} new tracks.")
+    uris_to_be_added = list(all_candidates)[:limit]
+    logger.info(f"Adding {len(uris_to_be_added)} new tracks.")
+    client.playlist_add_items(all_time_playlist_id, uris_to_be_added)
+    logger.info(f"Added {len(uris_to_be_added)} new tracks.")
+    return uris_to_be_added
+
+
 def add_to_all_time_playlist(
     client: Spotify,
     tracks: list[dict],
@@ -186,12 +264,15 @@ def filter_out_duplicates(tracks: list, new_tracks: list) -> list:
     # Remove duplicates by uri, just to be sure
     tracks_uris = {t.uri for t in tracks_info}
 
+    # Handle tracks from playlists or recommendations
+    new_tracks = [t.get("track", t) for t in new_tracks]
+
     return [
         t
         for t in new_tracks
         if (
-            t["track"].get("external_ids", {}).get("isrc") not in tracks_external_ids
-            and t["track"]["id"] not in tracks_uris
+            t.get("external_ids", {}).get("isrc") not in tracks_external_ids
+            and t["id"] not in tracks_uris
         )
     ]
 
