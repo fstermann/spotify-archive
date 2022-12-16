@@ -6,8 +6,8 @@ from spotify_archive.config import config
 from spotify_archive.logger import logger
 from spotify_archive.utils import add_to_all_time_playlist
 from spotify_archive.utils import deduplicate_playlist
+from spotify_archive.utils import get_all_playlist_items
 from spotify_archive.utils import load_client_from_config
-from spotify_archive.utils import parse_playlist
 from spotify_archive.utils import update_playlist_description
 
 SCHEDULES = ["daily", "weekly"]
@@ -21,14 +21,16 @@ def archive():
     logger.info(f"Archiving {schedule} playlists")
     playlists = getattr(config, schedule)
     for name, playlist in playlists.items():
-        track_uris = parse_playlist(client, playlist.original_playlist)
-        logger.info(f"Found {name} with {len(track_uris)} tracks")
+        tracks = get_all_playlist_items(client, playlist.original_playlist)
+        logger.info(f"Found {name} with {len(tracks)} tracks")
+
         logger.info("Adding to all time playlist")
         added_tracks = add_to_all_time_playlist(
             client,
-            track_uris=track_uris,
+            tracks=tracks,
             all_time_playlist_id=playlist.all_time_playlist,
         )
+
         update_playlist_description(
             client,
             n_tracks=len(added_tracks),

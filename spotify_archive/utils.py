@@ -99,7 +99,7 @@ def parse_playlist(client: Spotify, playlist_id: str) -> list[str]:
 
 def add_to_all_time_playlist(
     client: Spotify,
-    track_uris: list[str],
+    tracks: list[dict],
     all_time_playlist_id: str,
 ) -> list[str]:
     """Add tracks to a given all time playlist.
@@ -117,8 +117,8 @@ def add_to_all_time_playlist(
     all_tracks = get_all_playlist_items(client, all_time_playlist_id)
     logger.info(f"Found all time playlist with {len(all_tracks)} tracks")
 
-    all_time_uris = [t["track"]["id"] for t in all_tracks]
-    uris_to_be_added = [uri for uri in track_uris if uri not in all_time_uris]
+    tracks_to_be_added = filter_out_duplicates(tracks=all_tracks, new_tracks=tracks)
+    uris_to_be_added = [t["track"]["id"] for t in tracks_to_be_added]
 
     if not uris_to_be_added:
         logger.info("All tracks are already included.")
