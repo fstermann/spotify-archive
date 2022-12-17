@@ -22,6 +22,10 @@ def archive():
     logger.info(f"Archiving {schedule} playlists")
     playlists = getattr(config, schedule)
     for name, playlist in playlists.items():
+        if playlist.original_playlist is None:
+            logger.info(f"Skipping {name} as it has no original playlist")
+            continue
+
         tracks = get_all_playlist_items(client, playlist.original_playlist)
         logger.info(f"Found {name} with {len(tracks)} tracks")
 
@@ -38,7 +42,7 @@ def archive():
                 client,
                 all_time_playlist_id=playlist.all_time_playlist,
                 seed_genres=playlist.genres,
-                limit=5,
+                limit=playlist.n_recommendations,
             )
 
         update_playlist_description(
@@ -48,6 +52,34 @@ def archive():
         )
 
     logger.info("Done archiving")
+
+
+def generate():
+    schedule = parse_schedule()
+    logger.info("Loading client")
+    client = load_client_from_config(config.spotify)
+
+    playlists = getattr(config, schedule)
+    for name, playlist in playlists.items():
+        if playlist.original_playlist is not None:
+            logger.info(f"Skipping {name} as it has an original playlist")
+            continue
+        logger.info(f"Generating tracks for playlist {name}")
+
+        if playlist.n_recommendations > 0:
+            logger.info("Adding recommendations")
+            added_recommendations = add_recommendations_to_all_time_playlist(
+                client,
+                all_time_playlist_id=playlist.all_time_playlist,
+                seed_genres=playlist.genres,
+                limit=playlist.n_recommendations,
+            )
+
+        update_playlist_description(
+            client,
+            n_tracks=len(added_recommendations),
+            playlist_id=playlist.all_time_playlist,
+        )
 
 
 def deduplicate():

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import datetime
+from itertools import zip_longest
 from typing import Generator
 from typing import NamedTuple
 
@@ -101,7 +102,7 @@ def parse_playlist(client: Spotify, playlist_id: str) -> list[str]:
 
 def get_recommendations(
     client: Spotify,
-    seed_tracks: list[str],
+    seed_tracks: list[str] | None = None,
     seed_genres: list[str] | None = None,
     limit: int = 20,
 ) -> list[dict]:
@@ -118,15 +119,21 @@ def get_recommendations(
 
     Raises:
         ValueError: If limit is greater than 100
+        ValueError: If no seed tracks or genres are provided
         ValueError: If the total number of seeds is greater than 5 (MAX_SEEDS)
     """
     if limit > 100:
         raise ValueError("limit must be less than or equal to 100")
-    if len(seed_tracks) + len(seed_genres or []) > MAX_SEEDS:
+    if not seed_tracks and not seed_genres:
+        raise ValueError("Must provide at least one seed track or genre")
+    if len(seed_tracks or []) + len(seed_genres or []) > MAX_SEEDS:
         raise ValueError(
             f"Total number of seeds must be less than or equal to {MAX_SEEDS}",
         )
 
+    logger.info("Getting recommendations...")
+    logger.info(f"Seed tracks: {seed_tracks}")
+    logger.info(f"Seed genres: {seed_genres}")
     recommendations = client.recommendations(
         seed_tracks=seed_tracks,
         seed_genres=seed_genres,
@@ -159,14 +166,16 @@ def add_recommendations_to_all_time_playlist(
 
     all_candidates = set()
     tries = 0
-    for seed_uris in make_chunks(all_uris, MAX_SEEDS - len(seed_genres or [])):
+    seed_uris = make_chunks(all_uris, MAX_SEEDS - len(seed_genres or []))
+
+    for s_uris, s_genres in zip_longest(seed_uris, [seed_genres] * max_tries):
         tries += 1
         logger.info(f"Trying to get recommendations {tries}/{max_tries}...")
 
         recommendations = get_recommendations(
             client,
-            seed_tracks=seed_uris,
-            seed_genres=seed_genres,
+            seed_tracks=s_uris,
+            seed_genres=s_genres,
             limit=100,
         )
         logger.info(f"Got {len(recommendations)} recommendations.")
