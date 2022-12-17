@@ -35,6 +35,7 @@ jobs:
           USERNAME: ${{ secrets.USERNAME }}
         run: |
           spotify-archive daily
+          spotify-generate daily
       - name: Archive weekly
         if: contains(github.event.schedule, '0 5 * * 2')
         env:
@@ -45,3 +46,4 @@ jobs:
           USERNAME: ${{ secrets.USERNAME }}
         run: |
           spotify-archive weekly
+          spotify-generate weekly
