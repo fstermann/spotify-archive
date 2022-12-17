@@ -10,6 +10,11 @@ daily:
     all_time_playlist: 0F9f5FhW0Lq60yQpYnv0Ql
     original_playlist: 37i9dQZF1EQpoj8u9Hn81e
     n_recommendations: 0
+  minimal-mix:
+    all_time_playlist: 4VJL9Ao40XgJtuBlXv1mu6
+    n_recommendations: 10
+    genres:
+      - minimal-techno
 
 weekly:
   daily-mix:

@@ -10,9 +10,9 @@ from dotenv import dotenv_values
 
 @dataclass
 class PlaylistConfig:
-    original_playlist: str
     all_time_playlist: str
-    n_recommendations: int
+    original_playlist: str | None = None
+    n_recommendations: int = 0
     genres: list[str] | None = None
 
 
