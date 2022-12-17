@@ -3,6 +3,9 @@ daily:
     all_time_playlist: 2sadM6M9K9UqJvf2SFHHlu
     original_playlist: 37i9dQZF1EQqkOPvHGajmW
     n_recommendations: 5
+    genres:
+      - indie
+      - indie-pop
   house-mix:
     all_time_playlist: 0F9f5FhW0Lq60yQpYnv0Ql
     original_playlist: 37i9dQZF1EQpoj8u9Hn81e

@@ -27,7 +27,7 @@ unique tracks.
 
 
 You can also specify an amount of recommendations you want to add to the 'all-time' playlist. These will be generated
-based on the recently added tracks of the 'all-time' playlist.
+based on the recently added tracks of the 'all-time' playlist, as well as the genres specified in the config file.
 
 
 ## Run

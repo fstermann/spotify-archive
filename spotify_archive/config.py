@@ -13,6 +13,7 @@ class PlaylistConfig:
     original_playlist: str
     all_time_playlist: str
     n_recommendations: int
+    genres: list[str] | None = None
 
 
 @dataclass
