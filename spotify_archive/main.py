@@ -37,6 +37,7 @@ def archive():
             added_recommendations = add_recommendations_to_all_time_playlist(
                 client,
                 all_time_playlist_id=playlist.all_time_playlist,
+                seed_genres=playlist.genres,
                 limit=5,
             )
 

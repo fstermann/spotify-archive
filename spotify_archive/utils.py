@@ -11,6 +11,8 @@ from spotipy.oauth2 import SpotifyOAuth
 from spotify_archive.config import SpotifyConfig
 from spotify_archive.logger import logger
 
+MAX_SEEDS = 5
+
 
 class TrackInfo(NamedTuple):
     external_id: str | None
@@ -100,6 +102,7 @@ def parse_playlist(client: Spotify, playlist_id: str) -> list[str]:
 def get_recommendations(
     client: Spotify,
     seed_tracks: list[str],
+    seed_genres: list[str] | None = None,
     limit: int = 20,
 ) -> list[dict]:
     """Get recommendations from Spotify.
@@ -107,6 +110,7 @@ def get_recommendations(
     Args:
         client (Spotify): The Spotify client
         seed_tracks (list[str]): A list of seed tracks
+        seed_genres (list[str], optional): A list of seed genres. Defaults to None.
         limit (int): The number of recommendations to return
 
     Returns:
@@ -114,11 +118,20 @@ def get_recommendations(
 
     Raises:
         ValueError: If limit is greater than 100
+        ValueError: If the total number of seeds is greater than 5 (MAX_SEEDS)
     """
     if limit > 100:
         raise ValueError("limit must be less than or equal to 100")
+    if len(seed_tracks) + len(seed_genres or []) > MAX_SEEDS:
+        raise ValueError(
+            f"Total number of seeds must be less than or equal to {MAX_SEEDS}",
+        )
 
-    recommendations = client.recommendations(seed_tracks=seed_tracks, limit=limit)
+    recommendations = client.recommendations(
+        seed_tracks=seed_tracks,
+        seed_genres=seed_genres,
+        limit=limit,
+    )
     return recommendations["tracks"]
 
 
@@ -126,6 +139,7 @@ def add_recommendations_to_all_time_playlist(
     client: Spotify,
     all_time_playlist_id: str,
     limit: int = 5,
+    seed_genres: list[str] | None = None,
     max_tries: int = 5,
 ) -> list[str]:
     """Add recommendations to the all time playlist.
@@ -145,11 +159,16 @@ def add_recommendations_to_all_time_playlist(
 
     all_candidates = set()
     tries = 0
-    for seed_uris in make_chunks(all_uris, 5):
+    for seed_uris in make_chunks(all_uris, MAX_SEEDS - len(seed_genres or [])):
         tries += 1
         logger.info(f"Trying to get recommendations {tries}/{max_tries}...")
 
-        recommendations = get_recommendations(client, seed_uris, 100)
+        recommendations = get_recommendations(
+            client,
+            seed_tracks=seed_uris,
+            seed_genres=seed_genres,
+            limit=100,
+        )
         logger.info(f"Got {len(recommendations)} recommendations.")
 
         candidates = filter_out_duplicates(
