@@ -224,7 +224,7 @@ def add_to_all_time_playlist(
     logger.info(f"Found all time playlist with {len(all_tracks)} tracks")
 
     tracks_to_be_added = filter_out_duplicates(tracks=all_tracks, new_tracks=tracks)
-    uris_to_be_added = [t["track"]["id"] for t in tracks_to_be_added]
+    uris_to_be_added = [t["id"] for t in tracks_to_be_added]
 
     if not uris_to_be_added:
         logger.info("All tracks are already included.")
