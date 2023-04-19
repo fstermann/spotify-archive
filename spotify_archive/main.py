@@ -36,6 +36,7 @@ def archive():
             all_time_playlist_id=playlist.all_time_playlist,
         )
 
+        added_recommendations = []
         if playlist.n_recommendations > 0:
             logger.info("Adding recommendations")
             added_recommendations = add_recommendations_to_all_time_playlist(
