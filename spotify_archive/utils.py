@@ -334,7 +334,7 @@ def find_duplicates_by_external_id(tracks: list) -> list[dict[str, str | list[in
     return to_remove
 
 
-def make_chunks(list_: list, n: int) -> Generator[list, None, None]:
+def make_chunks(list_: list, n: int) -> Generator[list]:
     """Yield successive n-sized chunks from a list.
 
     Args:
